@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["juangesino@gmail.com"]
   spec.summary       = %q{Alex Command-line tool.}
   spec.description   = %q{Alex is a Ruby on Rails template generator. Alex asks the user some questions to generate the templates and then applies the template to the new app.}
-  spec.homepage      = ""
+  spec.homepage      = "https://rubygems.org/gems/alex"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")

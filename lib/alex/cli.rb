@@ -35,6 +35,12 @@ module Alex
         devise_model_name = ask("What would you like the user model to be called? [user]")
         devise_model_name = "user" if devise_model_name.blank?
 
+        if yes?("Would you like to generate views and controllers for #{devise_model_name}?")
+          devise_model_scaffold = true
+        else
+          devise_model_scaffold = false
+        end
+
         if yes?("Would you like Devise's views?")
           devise_views = true
         else
@@ -71,17 +77,30 @@ module Alex
         figaro = false
       end
 
+      puts "\nCSS Frameworks:\n"
+      if yes?("Would you like to install a CSS Frameworks?")
+        css = true
+        css_fw = ask("Which CSS Framework would you like to use?\n\n[0] Bootstrap (default)\n[1] None\n\n")
+        css_fw = 0 if css_fw.blank?
+      else
+        css = false
+      end
+
+
       options = OpenStruct.new({
           :appname => appname,
           :db => db,
           # :server_type => server_type,
           :devise => devise,
           :devise_model_name => devise_model_name,
+          :devise_model_scaffold => devise_model_scaffold,
           :devise_views =>  devise_views,
           :user_roles => user_roles,
           :cancan =>  cancan,
           :active_admin => active_admin,
-          :figaro => figaro
+          :figaro => figaro,
+          :css => css,
+          :css_fw => css_fw
         })
 
       init_file = "gsub_file \"Gemfile\", \"gem \\'spring\\'\", \"\"\n"
@@ -93,6 +112,12 @@ module Alex
         if options.devise_views
           init_file = init_file + "generate \\'devise:views\\'\n"
         end
+
+        if options.devise_model_scaffold
+          init_file = init_file + "generate(:scaffold_controller, \\'#{options.devise_model_name}\\')\n"
+          init_file = init_file + "insert_into_file \\'config/routes.rb\\', \"resources :users\\n\", after: \"devise_for :users\\n\" \n"
+        end
+
       end
 
       if options.user_roles
@@ -121,9 +146,7 @@ module Alex
         init_file = init_file + "run \\'bundle exec figaro install\\'\n"
       end
 
-      init_file = init_file + "rake \\'db:migrate\\'\n"
-      init_file = init_file + "git add: \\'.\\', commit: \\'-m \"initial commit\"\\'\n"
-      init_file = init_file + "gsub_file \"Gemfile\", \"gem \\'spring\\'\", \"\"\n"
+
 
       if options.db.to_i == 0
         template_file.puts("gsub_file 'Gemfile', \"gem \'sqlite3\'\", \"gem \'sqlite3\', group: :development\"\n")
@@ -133,6 +156,30 @@ module Alex
       else
         template_file.puts("gsub_file 'Gemfile', \"gem \'sqlite3\'\", \"gem \'sqlite3\', group: :development\"\n")
       end
+
+
+      if options.css
+        case options.css_fw.to_i
+          when 0
+            # Add Bootstrap CSS
+            # Download Bootstrap CSS
+            init_file = init_file + "run \\'wget -P vendor/assets/stylesheets/ https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css\\'\n"
+            # Add CSS to application.css
+            init_file = init_file + "insert_into_file \\'app/assets/stylesheets/application.css\\', \\'*= require bootstrap.min\n\\', before: \"*/\\n\"\n"
+            # Download jQuery JS
+            init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://code.jquery.com/jquery-2.1.4.min.js\\'\n"
+            # Add jQuery to application.js
+            init_file = init_file + "append_file \\'app/assets/javascripts/application.js\\', \\'//= require jquery-2.1.4.min\\'\n"
+            # Download Bootstrap JS
+            init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js\\'\n"
+            # Add JS to application.js
+            init_file = init_file + "append_file \\'app/assets/javascripts/application.js\\', \\'//= require bootstrap.min\\'\n"
+          else
+        end
+      end
+
+      init_file = init_file + "rake \\'db:migrate\\'\n"
+      init_file = init_file + "git add: \\'.\\', commit: \\'-m \"initial commit\"\\'\n"
 
       template_file.puts("append_file '.gitignore', '.idea/'")
       template_file.puts("git :init")
