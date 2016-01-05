@@ -29,28 +29,28 @@ module Alex
       # server_type = 0 if server_type.blank?
 
       puts "\nDevise:\n"
-      if yes?("Would you like to install Devise?")
+      if yes?("Would you like to install Devise? (default: No)")
         devise = true
 
         devise_model_name = ask("What would you like the user model to be called? [user]")
         devise_model_name = "user" if devise_model_name.blank?
 
-        if yes?("Would you like to generate views and controllers for #{devise_model_name}?")
+        if yes?("Would you like to generate views and controllers for #{devise_model_name}? (default: No)")
           devise_model_scaffold = true
         else
           devise_model_scaffold = false
         end
 
-        if yes?("Would you like Devise's views?")
+        if yes?("Would you like Devise's views? (default: No)")
           devise_views = true
         else
           devise_views = false
         end
 
-        if yes?("Would you like to have UserRoles?")
+        if yes?("Would you like to have UserRoles? (default: No)")
           user_roles = true
           puts "\nCanCan:\n"
-          if yes?("Would you like to install CanCan to handle authorization?")
+          if yes?("Would you like to install CanCan to handle authorization? (default: No)")
             cancan = true
           else
             cancan = false
@@ -60,7 +60,7 @@ module Alex
         end
 
         puts "\nActiveAdmin:\n"
-        if yes?("Would you like to install ActiveAdmin?")
+        if yes?("Would you like to install ActiveAdmin? (default: No)")
           active_admin = true
         else
           active_admin = false
@@ -71,16 +71,17 @@ module Alex
       end
 
       puts "\nFigaro:\n"
-      if yes?("Would you like to install Figaro?")
+      if yes?("Would you like to install Figaro? (default: No)")
         figaro = true
       else
         figaro = false
       end
 
       puts "\nCSS Frameworks:\n"
-      if yes?("Would you like to install a CSS Frameworks?")
+      if yes?("Would you like to install a CSS Frameworks? (default: No)")
         css = true
         css_fw = ask("Which CSS Framework would you like to use?\n\n[0] Bootstrap (default)\n[1] None\n\n")
+        # css_fw = ask("Which CSS Framework would you like to use?\n\n[0] Bootstrap (default)\n[1] MaterialAdmin\n[2] None\n\n")
         css_fw = 0 if css_fw.blank?
       else
         css = false
@@ -167,13 +168,63 @@ module Alex
             # Add CSS to application.css
             init_file = init_file + "insert_into_file \\'app/assets/stylesheets/application.css\\', \\'*= require bootstrap.min\n\\', before: \"*/\\n\"\n"
             # Download jQuery JS
-            init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://code.jquery.com/jquery-2.1.4.min.js\\'\n"
+            # init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://code.jquery.com/jquery-2.1.4.min.js\\'\n"
             # Add jQuery to application.js
-            init_file = init_file + "append_file \\'app/assets/javascripts/application.js\\', \\'//= require jquery-2.1.4.min\\'\n"
+            # init_file = init_file + "append_file \\'app/assets/javascripts/application.js\\', \\'//= require jquery-2.1.4.min\\'\n"
             # Download Bootstrap JS
             init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js\\'\n"
             # Add JS to application.js
             init_file = init_file + "append_file \\'app/assets/javascripts/application.js\\', \\'//= require bootstrap.min\\'\n"
+          when 100
+              # Add MaterialAdmin Files
+              # Copy application.css
+              init_file = init_file + "run \\'wget -P app/assets/stylesheets/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/application.css\\'\n"
+              # Copy application.js
+              init_file = init_file + "run \\'wget -P app/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/application.js\\'\n"
+              # Copy fonts
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/FontAwesome.otf\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/fontawesome-webfont.eot\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/fontawesome-webfont.svg\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/fontawesome-webfont.ttf\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/fontawesome-webfont.woff\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/fontawesome-webfont.woff2\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/glyphicons-halflings-regular.eot\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/glyphicons-halflings-regular.svg\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/glyphicons-halflings-regular.ttf\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/glyphicons-halflings-regular.woff\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/glyphicons-halflings-regular.woff2\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/Material-Design-Iconic-Font.eot\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/Material-Design-Iconic-Font.svg\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/Material-Design-Iconic-Font.ttf\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/Material-Design-Iconic-Font.woff\\'\n"
+              # Copy images
+              init_file = init_file + "run \\'wget -P vendor/assets/images/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/images/img16.jpg\\'\n"
+              # Copy JS
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/app.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/App.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/App.min.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppCard.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppForm.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppNavigation.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppNavSearch.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppOffcanvas.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppVendor.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/fotorama.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/headroom.min.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/jquery.fitvids.min.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/jquery.inview.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/jquery.nb2sb.min.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/jquery.scrollTo-1.4.6-min.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/jquery.tablesorter.min.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/materialPreloader-vanilla.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/particles.min.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/stellar.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/demo/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/demo/DemoUIMessages.js\\'\n"
+              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/demo/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/demo/Demo.js\\'\n"
+
+              # Copy CSS
+              # Copy LESS
+              # Copy views
           else
         end
       end
