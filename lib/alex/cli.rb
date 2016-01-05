@@ -87,6 +87,13 @@ module Alex
         css = false
       end
 
+      puts "\nControllers:\n"
+      if yes?("Would you like me to create a PagesController for your root page? (default: No)")
+        pages = true
+      else
+        pages = false
+      end
+
 
       options = OpenStruct.new({
           :appname => appname,
@@ -101,7 +108,8 @@ module Alex
           :active_admin => active_admin,
           :figaro => figaro,
           :css => css,
-          :css_fw => css_fw
+          :css_fw => css_fw,
+          :pages => pages
         })
 
       init_file = "gsub_file \"Gemfile\", \"gem \\'spring\\'\", \"\"\n"
@@ -156,6 +164,13 @@ module Alex
 
       else
         template_file.puts("gsub_file 'Gemfile', \"gem \'sqlite3\'\", \"gem \'sqlite3\', group: :development\"\n")
+      end
+
+      if options.pages
+        # Create the controller
+        init_file = init_file + "generate(:controller, \\'Pages\\',\\'index\\')\n"
+        # Define route
+        init_file = init_file + "gsub_file \\'config/routes.rb\\', \"get \\'pages/index\\'\", \"root \\'pages#index\\'\"\n"
       end
 
 
