@@ -22,3 +22,8 @@ ratings:
   - "**.py"
   - "**.rb"
 exclude_paths: []
+exclude_fingerprints:
+    - cdc1cac1f5cb7afe72dca9f9bca8a237
+    - b86af833d6b2b1fa18da63471e2278d9
+    - ee0a31701f95b21db4aff40647a56a3d
+    - 27ea5333a9249069de161387ed8543f7
