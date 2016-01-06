@@ -12,10 +12,11 @@ module Alex
 
     NEW_APP
 
+    method_option :no_build, :type => :boolean, :default => false
+
     def new( appname )
 
-      FileUtils.mkdir_p ".alex"
-      template_file = File.new(".alex/#{appname}.rb", 'w')
+      build = options[:no_build]
 
       puts "Creating template file for new app `#{appname}`...\n"
 
@@ -110,306 +111,45 @@ module Alex
           :pages => pages
         })
 
-      init_file = "gsub_file \"Gemfile\", \"gem \\'spring\\'\", \"\"\n"
+      puts "\nBuilding template file in ./alex/#{options.appname}.rb"
+      Alex.build_template(appname, options)
+      puts "\nDone!\n\n"
 
-      if options.devise
-        template_file.puts("gem 'devise'\n")
-        init_file = init_file + "generate \\'devise:install\\'\ngenerate \\'devise\\', \\'#{options.devise_model_name}\\'\n"
+      if !build
+        puts "\nBuilding app applying template file ./alex/#{options.appname}.rb"
+        system "rails new #{options.appname} -m .alex/#{options.appname}.rb"
+        puts "\nDone!\n\n"
+        puts <<-'ALEX'
+=======================================================
 
-        if options.devise_views
-          init_file = init_file + "generate \\'devise:views\\'\n"
-        end
+Your app is ready!
 
-        if options.devise_model_scaffold
-          init_file = init_file + "generate(:scaffold_controller, \\'#{options.devise_model_name}\\')\n"
-          init_file = init_file + "insert_into_file \\'config/routes.rb\\', \"resources :users\\n\", after: \"devise_for :users\\n\" \n"
-        end
+Now you just have to run the initilization.
 
-      end
+Navigate to the app directory:
+cd APPNAME/
 
-      if options.user_roles
-        init_file = init_file + "generate(:scaffold, \\'user_role\\',\\'name:string\\',\\'-c=scaffold_controller\\')\n"
-        init_file = init_file + "insert_into_file \\'app/models/user_role.rb\\', \"has_many :users\\n\", after: \"class UserRole < ActiveRecord::Base\\n\" \n"
-        init_file = init_file + "insert_into_file \\'app/models/user.rb\\', \"belongs_to :user_role\\n\", after: \"class User < ActiveRecord::Base\\n\" \n"
-        init_file = init_file + "generate(:migration, \\'AddUserRoleIdToUser\\',\\'user_role_id:integer\\')\n"
-      end
-
-      if options.cancan
-        template_file.puts("gem 'cancan'\n")
-        init_file = init_file + "generate \\'cancan:ability\\'\n"
-      end
-
-      if options.active_admin
-        template_file.puts("gem 'activeadmin'\n")
-        init_file = init_file + "generate \\'active_admin:install\\'\n"
-        init_file = init_file + "generate \\'active_admin:resource #{options.devise_model_name}\\'\n"
-        if options.user_roles
-          init_file = init_file + "generate \\'active_admin:resource user_role\\'\n"
-        end
-      end
-
-      if options.figaro
-        template_file.puts("gem 'figaro'\n")
-        init_file = init_file + "run \\'bundle exec figaro install\\'\n"
-      end
+And tell Alex to run the initilization:
+alex init
 
 
-
-      if options.db.to_i == 0
-        template_file.puts("gsub_file 'Gemfile', \"gem \'sqlite3\'\", \"gem \'sqlite3\', group: :development\"\n")
-        template_file.puts("gem('pg', group: :production)\n")
-      elsif options.db.to_i == 1
-
+=======================================================
+        ALEX
       else
-        template_file.puts("gsub_file 'Gemfile', \"gem \'sqlite3\'\", \"gem \'sqlite3\', group: :development\"\n")
+        puts "\nSkip build app."
+        puts "\nDone!\n\n"
+        puts <<-'ALEX'
+=======================================================
+
+Your template is ready!
+
+You ran Alex with the --no-build option
+This means Alex just creates the template file inside .alex/
+
+=======================================================
+        ALEX
       end
 
-      if options.pages
-        # Create the controller
-        init_file = init_file + "generate(:controller, \\'Pages\\',\\'index\\')\n"
-        # Define route
-        init_file = init_file + "gsub_file \\'config/routes.rb\\', \"get \\'pages/index\\'\", \"root \\'pages#index\\'\"\n"
-      end
-
-
-      if options.css
-        case options.css_fw.to_i
-          when 0
-            # Add Bootstrap CSS
-            # Download Bootstrap CSS
-            init_file = init_file + "run \\'wget -P vendor/assets/stylesheets/ https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css\\'\n"
-            # Add CSS to application.css
-            init_file = init_file + "insert_into_file \\'app/assets/stylesheets/application.css\\', \\'*= require bootstrap.min\n\\', before: \"*/\\n\"\n"
-            # Download jQuery JS
-            # init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://code.jquery.com/jquery-2.1.4.min.js\\'\n"
-            # Add jQuery to application.js
-            # init_file = init_file + "append_file \\'app/assets/javascripts/application.js\\', \\'//= require jquery-2.1.4.min\\'\n"
-            # Download Bootstrap JS
-            init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js\\'\n"
-            # Add JS to application.js
-            init_file = init_file + "append_file \\'app/assets/javascripts/application.js\\', \\'//= require bootstrap.min\\'\n"
-          when 100
-              # Add MaterialAdmin Files
-              # Copy application.css
-              init_file = init_file + "run \\'wget -P app/assets/stylesheets/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/application.css\\'\n"
-              # Copy application.js
-              init_file = init_file + "run \\'wget -P app/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/application.js\\'\n"
-              # Copy fonts
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/FontAwesome.otf\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/fontawesome-webfont.eot\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/fontawesome-webfont.svg\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/fontawesome-webfont.ttf\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/fontawesome-webfont.woff\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/fontawesome-webfont.woff2\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/glyphicons-halflings-regular.eot\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/glyphicons-halflings-regular.svg\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/glyphicons-halflings-regular.ttf\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/glyphicons-halflings-regular.woff\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/glyphicons-halflings-regular.woff2\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/Material-Design-Iconic-Font.eot\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/Material-Design-Iconic-Font.svg\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/Material-Design-Iconic-Font.ttf\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/fonts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/fonts/Material-Design-Iconic-Font.woff\\'\n"
-              # Copy images
-              init_file = init_file + "run \\'wget -P vendor/assets/images/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/images/img16.jpg\\'\n"
-              # Copy JS
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/app.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/App.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/App.min.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppCard.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppForm.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppNavigation.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppNavSearch.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppOffcanvas.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/AppVendor.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/fotorama.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/headroom.min.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/jquery.fitvids.min.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/jquery.inview.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/jquery.nb2sb.min.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/jquery.scrollTo-1.4.6-min.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/jquery.tablesorter.min.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/materialPreloader-vanilla.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/particles.min.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/stellar.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/demo/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/demo/DemoUIMessages.js\\'\n"
-              init_file = init_file + "run \\'wget -P vendor/assets/javascripts/demo/ https://raw.githubusercontent.com/juangesino/alex/master/templates/MaterialAdmin/assets/javascripts/demo/Demo.js\\'\n"
-
-              # Copy CSS
-              # Copy LESS
-              # Copy views
-          else
-        end
-      end
-
-      # init_file = init_file + "rake \\'db:migrate\\'\n"
-      # init_file = init_file + "git add: \\'.\\', commit: \\'-m \"Initial commit\"\\'\n"
-
-      template_file.puts("append_file '.gitignore', '.idea/'")
-      template_file.puts("git :init")
-
-      template_file.puts("create_file 'config/alex/init.rb', '#{init_file}'")
-
-      if options.server_type.to_i == 1 || options.server_type.to_i == 2
-        if options.devise && yes?("\nAPI:\nWould you like me to build the API auth? (default: No)")
-          ### START API CONFIG (WITH AUTH)
-                template_file.puts(<<-'ALEXGEN'
-          append_file 'config/alex/init.rb', <<-'ALEX'
-          gsub_file 'app/controllers/application_controller.rb', "protect_from_forgery with: :exception", ""
-
-          inject_into_file 'app/controllers/application_controller.rb', after: "class ApplicationController < ActionController::Base\n" do <<-'RUBY'
-  protect_from_forgery with: :null_session
-  before_filter :add_allow_credentials_headers
-
-  def add_allow_credentials_headers
-    response.headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || '*'
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, DELETE, PUT, PATCH, OPTIONS'
-  end
-
-  def options
-    head :status => 200, :'Access-Control-Allow-Headers' => 'accept, content-type, authorization, User-App-Token'
-  end
-          RUBY
-          end
-
-          create_file 'app/controllers/api/v1/api_controller.rb'
-
-          append_file 'app/controllers/api/v1/api_controller.rb', <<-'RUBY'
-module Api
-  module V1
-    class ApiController < ApplicationController
-      respond_to :json
-      protect_from_forgery with: :null_session
-      before_filter :check_token
-      skip_before_filter :check_token, :only => [:auth]
-
-      def current_user
-        @current_user
-      end
-
-      def check_auth
-        user = User.where(token: params[:token]).first
-        if user
-          respond_with @current_user
-        else
-          respond_with status: 402
-        end
-      end
-
-      def auth
-        authenticate_or_request_with_http_basic do |username, password|
-          resource = User.find_by_email(username)
-          if resource && resource.valid_password?(password)
-            sign_in :user, resource
-            @current_user = resource
-            @current_user.token = Digest::MD5.hexdigest("#{DateTime.now}#{@current_user.email}")
-            @current_user.save
-            respond_with status: 200, token: @current_user.token, user: @current_user
-          else
-            respond_with status: 402
-          end
-        end
-      end
-
-      def check_token
-        user = User.where(token: request.headers["User-App-Token"]).first
-        if user && request.headers["User-App-Token"]
-          @current_user = user
-        else
-          respond_with status: 402
-        end
-      end
-
-
-    end
-  end
-end
-
-          RUBY
-
-          inject_into_file 'config/routes.rb', after: "Rails.application.routes.draw do\n" do <<-'RUBY'
-  match '*any' => 'application#options', :via => [:options]
-  namespace :api, defaults: {format: 'json'} do
-    namespace :v1 do
-      # Auth
-      match "/auth" => "api#auth", via: [:get]
-      match "/check_auth" => "api#check_auth", via: [:get]
-    end
-  end
-          RUBY
-          end
-
-          ALEX
-                ALEXGEN
-                )
-          ### START API CONFIG (WITH AUTH)
-        else
-          ### START API CONFIG (NO AUTH)
-                template_file.puts(<<-'ALEXGEN'
-          append_file 'config/alex/init.rb', <<-'ALEX'
-          gsub_file 'app/controllers/application_controller.rb', "protect_from_forgery with: :exception", ""
-
-          inject_into_file 'app/controllers/application_controller.rb', after: "class ApplicationController < ActionController::Base\n" do <<-'RUBY'
-  protect_from_forgery with: :null_session
-  before_filter :add_allow_credentials_headers
-
-  def add_allow_credentials_headers
-    response.headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || '*'
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, DELETE, PUT, PATCH, OPTIONS'
-  end
-
-  def options
-    head :status => 200, :'Access-Control-Allow-Headers' => 'accept, content-type, authorization, User-App-Token'
-  end
-          RUBY
-          end
-
-          create_file 'app/controllers/api/v1/api_controller.rb'
-
-          append_file 'app/controllers/api/v1/api_controller.rb', <<-'RUBY'
-module Api
-  module V1
-    class ApiController < ApplicationController
-      respond_to :json
-      protect_from_forgery with: :null_session
-
-    end
-  end
-end
-
-          RUBY
-
-          inject_into_file 'config/routes.rb', after: "Rails.application.routes.draw do\n" do <<-'RUBY'
-  match '*any' => 'application#options', :via => [:options]
-  namespace :api, defaults: {format: 'json'} do
-    namespace :v1 do
-
-    end
-  end
-          RUBY
-          end
-
-          ALEX
-                ALEXGEN
-                )
-          ### START API CONFIG (NO AUTH)
-        end
-      end
-
-
-      template_file.puts(<<-'ALEXGEN'
-append_file 'config/alex/init.rb', <<-'ALEX'
-rake 'db:migrate'
-git add '.', commit: '-m "Initial commit"'
-ALEX
-      ALEXGEN
-      )
-
-      template_file.close
-
-      exec "rails new #{appname} -m .alex/#{appname}.rb"
     end
 
     desc "init", "This will run the initilization template of your app"
