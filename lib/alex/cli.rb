@@ -24,9 +24,9 @@ module Alex
       db = ask("Which do you use for production?\n\n[0] PostgreSQL (default)\n[1] SQLite\n[2] None\n\n")
       db = 0 if db.blank?
 
-      # puts "\nServer Type:\n"
-      # server_type = ask("Which type of server are you building?\n\n[0] WebServer (default)\n[1] API\n[2] WebServer + API\n\n")
-      # server_type = 0 if server_type.blank?
+      puts "\nServer Type:\n"
+      server_type = ask("Which type of server are you building?\n\n[0] WebServer (default)\n[1] API\n[2] WebServer + API\n\n")
+      server_type = 0 if server_type.blank?
 
       puts "\nDevise:\n"
       if yes?("Would you like to install Devise? (default: No)")
@@ -77,8 +77,7 @@ module Alex
         figaro = false
       end
 
-      puts "\nCSS Frameworks:\n"
-      if yes?("Would you like to install a CSS Frameworks? (default: No)")
+      if server_type.to_i != 1 && yes?("\nCSS Frameworks:\nWould you like to install a CSS Frameworks? (default: No)")
         css = true
         css_fw = ask("Which CSS Framework would you like to use?\n\n[0] Bootstrap (default)\n[1] None\n\n")
         # css_fw = ask("Which CSS Framework would you like to use?\n\n[0] Bootstrap (default)\n[1] MaterialAdmin\n[2] None\n\n")
@@ -87,8 +86,7 @@ module Alex
         css = false
       end
 
-      puts "\nControllers:\n"
-      if yes?("Would you like me to create a PagesController for your root page? (default: No)")
+      if server_type.to_i != 1 && yes?("\nControllers:\nWould you like me to create a PagesController for your root page? (default: No)")
         pages = true
       else
         pages = false
@@ -98,7 +96,7 @@ module Alex
       options = OpenStruct.new({
           :appname => appname,
           :db => db,
-          # :server_type => server_type,
+          :server_type => server_type,
           :devise => devise,
           :devise_model_name => devise_model_name,
           :devise_model_scaffold => devise_model_scaffold,
@@ -244,12 +242,171 @@ module Alex
         end
       end
 
-      init_file = init_file + "rake \\'db:migrate\\'\n"
-      init_file = init_file + "git add: \\'.\\', commit: \\'-m \"initial commit\"\\'\n"
+      # init_file = init_file + "rake \\'db:migrate\\'\n"
+      # init_file = init_file + "git add: \\'.\\', commit: \\'-m \"Initial commit\"\\'\n"
 
       template_file.puts("append_file '.gitignore', '.idea/'")
       template_file.puts("git :init")
+
       template_file.puts("create_file 'config/alex/init.rb', '#{init_file}'")
+
+      if options.server_type.to_i == 1 || options.server_type.to_i == 2
+        if options.devise && yes?("\nAPI:\nWould you like me to build the API auth? (default: No)")
+          ### START API CONFIG (WITH AUTH)
+                template_file.puts(<<-'ALEXGEN'
+          append_file 'config/alex/init.rb', <<-'ALEX'
+          gsub_file 'app/controllers/application_controller.rb', "protect_from_forgery with: :exception", ""
+
+          inject_into_file 'app/controllers/application_controller.rb', after: "class ApplicationController < ActionController::Base\n" do <<-'RUBY'
+  protect_from_forgery with: :null_session
+  before_filter :add_allow_credentials_headers
+
+  def add_allow_credentials_headers
+    response.headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || '*'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, DELETE, PUT, PATCH, OPTIONS'
+  end
+
+  def options
+    head :status => 200, :'Access-Control-Allow-Headers' => 'accept, content-type, authorization, User-App-Token'
+  end
+          RUBY
+          end
+
+          create_file 'app/controllers/api/v1/api_controller.rb'
+
+          append_file 'app/controllers/api/v1/api_controller.rb', <<-'RUBY'
+module Api
+  module V1
+    class ApiController < ApplicationController
+      respond_to :json
+      protect_from_forgery with: :null_session
+      before_filter :check_token
+      skip_before_filter :check_token, :only => [:auth]
+
+      def current_user
+        @current_user
+      end
+
+      def check_auth
+        user = User.where(token: params[:token]).first
+        if user
+          respond_with @current_user
+        else
+          respond_with status: 402
+        end
+      end
+
+      def auth
+        authenticate_or_request_with_http_basic do |username, password|
+          resource = User.find_by_email(username)
+          if resource && resource.valid_password?(password)
+            sign_in :user, resource
+            @current_user = resource
+            @current_user.token = Digest::MD5.hexdigest("#{DateTime.now}#{@current_user.email}")
+            @current_user.save
+            respond_with status: 200, token: @current_user.token, user: @current_user
+          else
+            respond_with status: 402
+          end
+        end
+      end
+
+      def check_token
+        user = User.where(token: request.headers["User-App-Token"]).first
+        if user && request.headers["User-App-Token"]
+          @current_user = user
+        else
+          respond_with status: 402
+        end
+      end
+
+
+    end
+  end
+end
+
+          RUBY
+
+          inject_into_file 'config/routes.rb', after: "Rails.application.routes.draw do\n" do <<-'RUBY'
+  match '*any' => 'application#options', :via => [:options]
+  namespace :api, defaults: {format: 'json'} do
+    namespace :v1 do
+      # Auth
+      match "/auth" => "api#auth", via: [:get]
+      match "/check_auth" => "api#check_auth", via: [:get]
+    end
+  end
+          RUBY
+          end
+
+          ALEX
+                ALEXGEN
+                )
+          ### START API CONFIG (WITH AUTH)
+        else
+          ### START API CONFIG (NO AUTH)
+                template_file.puts(<<-'ALEXGEN'
+          append_file 'config/alex/init.rb', <<-'ALEX'
+          gsub_file 'app/controllers/application_controller.rb', "protect_from_forgery with: :exception", ""
+
+          inject_into_file 'app/controllers/application_controller.rb', after: "class ApplicationController < ActionController::Base\n" do <<-'RUBY'
+  protect_from_forgery with: :null_session
+  before_filter :add_allow_credentials_headers
+
+  def add_allow_credentials_headers
+    response.headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || '*'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, DELETE, PUT, PATCH, OPTIONS'
+  end
+
+  def options
+    head :status => 200, :'Access-Control-Allow-Headers' => 'accept, content-type, authorization, User-App-Token'
+  end
+          RUBY
+          end
+
+          create_file 'app/controllers/api/v1/api_controller.rb'
+
+          append_file 'app/controllers/api/v1/api_controller.rb', <<-'RUBY'
+module Api
+  module V1
+    class ApiController < ApplicationController
+      respond_to :json
+      protect_from_forgery with: :null_session
+
+    end
+  end
+end
+
+          RUBY
+
+          inject_into_file 'config/routes.rb', after: "Rails.application.routes.draw do\n" do <<-'RUBY'
+  match '*any' => 'application#options', :via => [:options]
+  namespace :api, defaults: {format: 'json'} do
+    namespace :v1 do
+
+    end
+  end
+          RUBY
+          end
+
+          ALEX
+                ALEXGEN
+                )
+          ### START API CONFIG (NO AUTH)
+        end
+      end
+
+
+      template_file.puts(<<-'ALEXGEN'
+append_file 'config/alex/init.rb', <<-'ALEX'
+rake 'db:migrate'
+git add '.', commit: '-m "Initial commit"'
+ALEX
+      ALEXGEN
+      )
+
       template_file.close
 
       exec "rails new #{appname} -m .alex/#{appname}.rb"
