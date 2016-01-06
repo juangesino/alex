@@ -4,7 +4,6 @@
 [![Build Status](https://travis-ci.org/juangesino/alex.svg?branch=master)](https://travis-ci.org/juangesino/alex)
 [![Code Climate](https://codeclimate.com/github/juangesino/alex/badges/gpa.svg)](https://codeclimate.com/github/juangesino/alex)
 [![Dependency Status](https://gemnasium.com/juangesino/alex.svg)](https://gemnasium.com/juangesino/alex)
-[![security](https://hakiri.io/github/juangesino/alex/master.svg)](https://hakiri.io/github/juangesino/alex/master)
 
 Alex is a Ruby on Rails template generator. Alex asks the user some questions to generate the templates and then applies the template to the new app.
 
