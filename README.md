@@ -1,6 +1,7 @@
 # Alex
 
 [![Gem Version](https://badge.fury.io/rb/alex.svg)](https://badge.fury.io/rb/alex)
+[![Build Status](https://travis-ci.org/juangesino/alex.svg?branch=master)](https://travis-ci.org/juangesino/alex)
 [![Code Climate](https://codeclimate.com/github/juangesino/alex/badges/gpa.svg)](https://codeclimate.com/github/juangesino/alex)
 [![Dependency Status](https://gemnasium.com/juangesino/alex.svg)](https://gemnasium.com/juangesino/alex)
 [![security](https://hakiri.io/github/juangesino/alex/master.svg)](https://hakiri.io/github/juangesino/alex/master)
