@@ -66,6 +66,20 @@ And run:
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
 
+## TODO
+
+ - Generator for carrierwave & fog integration (Amazon S3)
+ - Write tests
+ - API Scaffolding
+ - CSS & JS template generator
+    - [AdminLTE](https://almsaeedstudio.com/)
+    - [SB Admin](http://startbootstrap.com/template-overviews/sb-admin/)
+    - [Dash Gum](http://blacktie.co/2014/07/dashgum-free-dashboard/)
+    - [Bootstrap Metro Dashboard](https://github.com/jiji262/Bootstrap_Metro_Dashboard)
+    - [Minimum Admin Theme](http://www.bootstrapzero.com/bootstrap-template/akivaron-miminium-theme)
+    - [Janux](http://www.bootstrapzero.com/bootstrap-template/janux-free-responsive-admin-dashboard-template)
+    - [K-Admin](http://www.bootstrapzero.com/bootstrap-template/kadmin-free-responsive-admin-dashboard-template)
+
 ## License
 
 See [MIT-LICENSE](https://github.com/juangesino/alex/blob/master/LICENSE.txt)
