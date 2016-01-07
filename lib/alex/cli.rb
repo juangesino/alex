@@ -81,7 +81,6 @@ module Alex
       if server_type.to_i != 1 && yes?("\nCSS Frameworks:\nWould you like to install a CSS Frameworks? (default: No)")
         css = true
         css_fw = ask("Which CSS Framework would you like to use?\n\n[0] Bootstrap (default)\n[1] None\n\n")
-        # css_fw = ask("Which CSS Framework would you like to use?\n\n[0] Bootstrap (default)\n[1] MaterialAdmin\n[2] None\n\n")
         css_fw = 0 if css_fw.blank?
       else
         css = false
