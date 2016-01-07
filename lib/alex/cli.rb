@@ -52,19 +52,20 @@ module Alex
       else
         figaro = false
       end
-      if server_type.to_i != 1 && yes?("\nCSS Frameworks:\nWould you like to install a CSS Frameworks? (default: No)")
+      if server_type.to_i != 1 && yes?("\nCSS Frameworks:\nWould you like to install a CSS frameworks/template? (default: No)")
         css = true
-        css_fw = ask("Which CSS Framework would you like to use?\n\n[0] Bootstrap (default)\n[1] None\n\n")
+        css_fw = ask("Which CSS Framework would you like to use?\n\n[0] Bootstrap (default)\n[1] None\n[2] AdminLTE\n\n")
         css_fw = 0 if css_fw.blank?
+        css_template = 'AdminLTE-2.3.0' if css_fw.to_i == 2
       else
         css = false
       end
-      if server_type.to_i != 1 && yes?("\nControllers:\nWould you like me to create a PagesController for your root page? (default: No)")
+      if css_fw.to_i > 1 || (server_type.to_i != 1 && yes?("\nControllers:\nWould you like me to create a PagesController for your root page? (default: No)"))
         pages = true
       else
         pages = false
       end
-      if devise && yes?("\nAPI:\nWould you like me to build the API auth? (default: No)")
+      if devise && server_type.to_i != 0 && yes?("\nAPI:\nWould you like me to build the API auth? (default: No)")
         api_auth = true
       else
         api_auth = false
@@ -83,14 +84,16 @@ module Alex
           :figaro => figaro,
           :css => css,
           :css_fw => css_fw,
+          :css_template => css_template,
           :pages => pages,
           :api_auth => api_auth
         })
       puts "\nBuilding template file in ./alex/#{options.appname}.rb"
       Alex.build_template(appname, options)
       puts "\nDone!\n\n"
+
       if !build
-        puts "\nBuilding app applying template file ./alex/#{options.appname}.rb"
+        puts "\nBuilding app & applying template file ./alex/#{options.appname}.rb"
         system "rails new #{options.appname} -m .alex/#{options.appname}.rb"
         puts <<-'ALEX'
 
@@ -138,12 +141,12 @@ This means Alex just creates the template file inside .alex/
       exec "rake rails:template LOCATION=config/alex/init.rb"
     end
 
-    desc "unzip", "This will run the initilization template of your app"
+    desc "style", "This will run the StyleGenerators for the specified template"
     long_desc <<-INIT_APP
-    `init` will run the initilization template of your app.
+    `style` will run the StyleGenerators for the specified template.
     INIT_APP
-    def unzip(file, destination)
-      Alex::Helpers::AlexHelper.unzip(file, destination)
+    def style(template)
+      Alex::Generators::StyleGenerators.new(template)
     end
 
   end
