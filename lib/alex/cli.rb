@@ -93,6 +93,12 @@ module Alex
         pages = false
       end
 
+      if devise && yes?("\nAPI:\nWould you like me to build the API auth? (default: No)")
+        api_auth = true
+      else
+        api_auth = false
+      end
+
 
       options = OpenStruct.new({
           :appname => appname,
@@ -108,7 +114,8 @@ module Alex
           :figaro => figaro,
           :css => css,
           :css_fw => css_fw,
-          :pages => pages
+          :pages => pages,
+          :api_auth => api_auth
         })
 
       puts "\nBuilding template file in ./alex/#{options.appname}.rb"
