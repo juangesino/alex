@@ -77,8 +77,6 @@ And run:
     - [Dash Gum](http://blacktie.co/2014/07/dashgum-free-dashboard/)
     - [Bootstrap Metro Dashboard](https://github.com/jiji262/Bootstrap_Metro_Dashboard)
     - [Minimum Admin Theme](http://www.bootstrapzero.com/bootstrap-template/akivaron-miminium-theme)
-    - [Janux](http://www.bootstrapzero.com/bootstrap-template/janux-free-responsive-admin-dashboard-template)
-    - [K-Admin](http://www.bootstrapzero.com/bootstrap-template/kadmin-free-responsive-admin-dashboard-template)
 
 ## License
 

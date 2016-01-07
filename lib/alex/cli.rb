@@ -137,5 +137,14 @@ This means Alex just creates the template file inside .alex/
     def init
       exec "rake rails:template LOCATION=config/alex/init.rb"
     end
+
+    desc "unzip", "This will run the initilization template of your app"
+    long_desc <<-INIT_APP
+    `init` will run the initilization template of your app.
+    INIT_APP
+    def unzip(file, destination)
+      Alex::Helpers::AlexHelper.unzip(file, destination)
+    end
+
   end
 end
