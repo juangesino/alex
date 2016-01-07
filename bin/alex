@@ -1,5 +1,3 @@
 #!/usr/bin/env ruby
-
 require 'alex'
-
 Alex::Cli.start( ARGV )

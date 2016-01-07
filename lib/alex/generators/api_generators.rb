@@ -1,12 +1,10 @@
 module Alex
   module Generators
     class ApiGenerators
-
       def self.auth
         return <<-'ALEXGEN'
         append_file 'config/alex/init.rb', <<-'ALEX'
         gsub_file 'app/controllers/application_controller.rb', "protect_from_forgery with: :exception", ""
-
         inject_into_file 'app/controllers/application_controller.rb', after: "class ApplicationController < ActionController::Base\n" do <<-'RUBY'
   protect_from_forgery with: :null_session
   before_filter :add_allow_credentials_headers
@@ -22,9 +20,7 @@ module Alex
   end
         RUBY
         end
-
         create_file 'app/controllers/api/v1/api_controller.rb'
-
         append_file 'app/controllers/api/v1/api_controller.rb', <<-'RUBY'
 module Api
   module V1
@@ -75,9 +71,7 @@ module Api
     end
   end
 end
-
         RUBY
-
         inject_into_file 'config/routes.rb', after: "Rails.application.routes.draw do\n" do <<-'RUBY'
   match '*any' => 'application#options', :via => [:options]
   namespace :api, defaults: {format: 'json'} do
@@ -89,11 +83,9 @@ end
   end
         RUBY
         end
-
         ALEX
         ALEXGEN
       end
-
       def self.no_auth
         return <<-'ALEXGEN'
   append_file 'config/alex/init.rb', <<-'ALEX'
@@ -134,7 +126,6 @@ end
     match '*any' => 'application#options', :via => [:options]
     namespace :api, defaults: {format: 'json'} do
       namespace :v1 do
-
       end
     end
   RUBY
@@ -143,7 +134,6 @@ end
   ALEX
         ALEXGEN
     end
-
     end
   end
 end
