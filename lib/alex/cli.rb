@@ -91,12 +91,10 @@ module Alex
       puts "\nBuilding template file in ./alex/#{options.appname}.rb"
       Alex.build_template(appname, options)
       puts "\nDone!\n\n"
-
       if !build
         puts "\nBuilding app & applying template file ./alex/#{options.appname}.rb"
         system "rails new #{options.appname} -m .alex/#{options.appname}.rb"
         puts <<-'ALEX'
-
 Done!
 
 
