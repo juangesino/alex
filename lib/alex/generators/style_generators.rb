@@ -1,7 +1,6 @@
 module Alex
   module Generators
     class StyleGenerators
-
       def initialize(template_name)
           puts "Running StyleGenerators"
           # Read which template to use
@@ -36,7 +35,6 @@ module Alex
           FileUtils.rm_rf("#{template_name}.zip")
           FileUtils.rm_rf("#{template_name}")
       end
-
     end
   end
 end
