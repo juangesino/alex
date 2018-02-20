@@ -5,10 +5,8 @@ module Alex
       def initialize(appname, options)
         FileUtils.mkdir_p ".alex"
         template_file = File.new(".alex/#{appname}.rb", 'w')
-
         template_file.puts("gem('alex', group: :development)\n")
         template_file.puts("gem('zip', group: :development)\n")
-
         if options.devise
           template_file.puts("gem 'devise'\n")
         end
