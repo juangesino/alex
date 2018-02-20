@@ -47,14 +47,11 @@ module Alex
             else
           end
         end
-
         if options.css_fw.to_i > 1
           init_file = init_file + "run \\'alex style #{options.css_template}\\'\n"
         end
-        
         # init_file = "gsub_file \"Gemfile\", \"gem \\'alex\\'\", \"\"\n"
         # init_file = "gsub_file \"Gemfile\", \"gem \\'zip\\'\", \"\"\n"
-
         template_file.write("insert_into_file 'config/alex/init.rb', '#{init_file}\n', after: '### START INIT FILE\n'")
         template_file.close
       end
